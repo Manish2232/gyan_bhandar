@@ -1,9 +1,8 @@
-import Image from "next/image";
-
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
 type Resource = {
   id: string;
@@ -23,15 +22,22 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All notes");
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch("/api/resources?limit=12", { signal: controller.signal })
+    const params = new URLSearchParams({ limit: "12", page: String(page) });
+    if (category !== "All notes") params.set("category", category);
+    if (search.trim()) params.set("q", search.trim());
+    const timer = window.setTimeout(() => fetch(`/api/resources?${params}`, { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error("The library could not be reached.");
-        const data = (await response.json()) as { resources: Resource[] };
-        setResources(data.resources);
+        const data = (await response.json()) as { resources: Resource[]; hasMore: boolean };
+        setResources((current) => page === 1 ? data.resources : [...current, ...data.resources]);
+        setHasMore(data.hasMore);
       })
       .catch((reason: unknown) => {
         if (!controller.signal.aborted) {
@@ -39,19 +45,38 @@ export default function Home() {
         }
       })
       .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
-    return () => controller.abort();
-  }, []);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+          setLoadingMore(false);
+        }
+      }), 180);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [category, page, search]);
 
-  const filtered = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase();
-    return resources.filter((resource) => {
-      const matchesCategory = category === "All notes" || resource.category === category;
-      const searchable = `${resource.title} ${resource.summary} ${resource.tags.join(" ")}`.toLocaleLowerCase();
-      return matchesCategory && (!query || searchable.includes(query));
-    });
-  }, [resources, search, category]);
+  function selectCategory(nextCategory: string) {
+    setCategory(nextCategory);
+    setPage(1);
+    setLoading(true);
+    setLoadingMore(false);
+    setError("");
+  }
+
+  function updateSearch(nextSearch: string) {
+    setSearch(nextSearch);
+    setPage(1);
+    setLoading(true);
+    setLoadingMore(false);
+    setError("");
+  }
+
+  function loadMore() {
+    setLoadingMore(true);
+    setError("");
+    setPage((current) => current + 1);
+  }
 
   return (
     <>
@@ -79,8 +104,8 @@ export default function Home() {
             <a className="button button-dark hero-button" href="#library">Explore the library <span aria-hidden="true">↓</span></a>
             <div className="hero-footnote"><span className="avatar-stack" aria-hidden="true"><i>G</i><i>B</i><i>+</i></span><span>Made richer by curious minds</span></div>
           </div>
-          <div className="hero-art">
-            <img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1400&q=85" alt="Sunlit shelves in a quiet library" fetchPriority="high" />
+            <div className="hero-art">
+            <Image src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1400&q=85" alt="Sunlit shelves in a quiet library" fill sizes="(max-width: 700px) calc(100vw - 36px), 590px" priority unoptimized />
             <span className="art-label">FIELD NOTES <span>VOL. 01 / ALWAYS OPEN</span></span>
             <span className="art-caption">A place to keep what moves you.</span>
           </div>
@@ -98,7 +123,7 @@ export default function Home() {
           <div className="library-controls">
             <div className="category-tabs" role="group" aria-label="Filter by category">
               {categories.map((item) => (
-                <button key={item} className={category === item ? "category-tab active" : "category-tab"} onClick={() => setCategory(item)} aria-pressed={category === item}>
+                <button key={item} className={category === item ? "category-tab active" : "category-tab"} onClick={() => selectCategory(item)} aria-pressed={category === item}>
                   {item}
                 </button>
               ))}
@@ -106,7 +131,7 @@ export default function Home() {
             <label className="search-box">
               <span className="search-icon" aria-hidden="true">⌕</span>
               <span className="visually-hidden">Search the library</span>
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search the library" />
+              <input value={search} onChange={(event) => updateSearch(event.target.value)} placeholder="Search the library" />
               <kbd>/</kbd>
             </label>
           </div>
@@ -117,9 +142,9 @@ export default function Home() {
             </div>
           ) : error ? (
             <div className="empty-state" role="status"><span className="empty-icon">!</span><h3>We lost our place.</h3><p>{error} Try refreshing in a moment.</p></div>
-          ) : filtered.length ? (
+          ) : resources.length ? (
             <div className="resource-grid">
-              {filtered.map((resource, index) => (
+              {resources.map((resource, index) => (
                 <Link className="resource-card" href={`/resources/${resource.id}`} key={resource.id}>
                   <div className={`resource-cover ${covers[index % covers.length]}`}>
                     <span className="cover-category">{resource.category}</span>
@@ -134,6 +159,7 @@ export default function Home() {
                   </div>
                 </Link>
               ))}
+              {loadingMore && Array.from({ length: 2 }, (_, index) => <div className="resource-skeleton" key={`more-${index}`} aria-hidden="true"><div /><span /><span /></div>)}
             </div>
           ) : (
             <div className="empty-state" role="status">
@@ -143,6 +169,7 @@ export default function Home() {
               <Link className="text-link" href="/signup">Add to the library <span aria-hidden="true">↗</span></Link>
             </div>
           )}
+          {!loading && !error && hasMore && <div className="load-more-wrap"><button className="button button-outline" type="button" onClick={loadMore} disabled={loadingMore}>{loadingMore ? "Finding more notes…" : "Load more notes"}<span aria-hidden="true">↓</span></button></div>}
         </section>
 
         <section className="contribute-band" id="about">
