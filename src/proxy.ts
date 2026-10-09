@@ -7,13 +7,14 @@ export function proxy(request: NextRequest) {
   const nonce = Buffer.from(randomUUID()).toString("base64");
   const policy = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDevelopment ? " 'unsafe-eval'" : ""}`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://checkout.razorpay.com${isDevelopment ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://images.unsplash.com",
     "font-src 'self' data:",
-    `connect-src 'self'${isDevelopment ? " ws:" : ""}`,
+    `connect-src 'self' https://api.razorpay.com https://lumberjack.razorpay.com${isDevelopment ? " ws:" : ""}`,
+    "frame-src https://api.razorpay.com https://checkout.razorpay.com https://*.razorpay.com https://*.razorpay.in",
     "base-uri 'self'",
-    "form-action 'self'",
+    "form-action 'self' https://api.razorpay.com",
     "frame-ancestors 'none'",
     "object-src 'none'",
     ...(isDevelopment ? [] : ["upgrade-insecure-requests"]),

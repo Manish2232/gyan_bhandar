@@ -37,7 +37,6 @@ CREATE INDEX "Session_userId_idx" ON "Session"("userId");
 CREATE INDEX "Session_expiresAt_idx" ON "Session"("expiresAt");
 CREATE INDEX "Resource_userId_updatedAt_idx" ON "Resource"("userId", "updatedAt");
 CREATE INDEX "Resource_isPublished_category_createdAt_idx" ON "Resource"("isPublished", "category", "createdAt");
-
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey"
 FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "Resource" ADD CONSTRAINT "Resource_userId_fkey"

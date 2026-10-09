@@ -24,6 +24,7 @@
     "bcryptjs": "^3.0.2",
     "lucide-react": "^0.468.0",
     "next": "16.4.0",
+    "razorpay": "^2.9.8",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "^4.1.12"
@@ -31,10 +32,10 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
-    "@vitejs/plugin-react": "^5.0.4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^5.0.4",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
     "jsdom": "^27.0.1",

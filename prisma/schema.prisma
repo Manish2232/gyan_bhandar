@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum ContributionStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
 model User {
   id           String     @id @default(cuid())
   email        String     @unique
@@ -45,4 +51,22 @@ model Resource {
 
   @@index([userId, updatedAt])
   @@index([isPublished, category, createdAt])
+}
+
+model Contribution {
+  id                String             @id @default(cuid())
+  receipt           String             @unique
+  razorpayOrderId   String?            @unique
+  razorpayPaymentId String?            @unique
+  amountPaise       Int
+  currency          String             @default("INR")
+  donorName         String?
+  donorEmail        String?
+  message           String?
+  status            ContributionStatus @default(PENDING)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  paidAt            DateTime?
+
+  @@index([status, createdAt])
 }

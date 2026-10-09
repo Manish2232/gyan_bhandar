@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resourceSchema, resourceUpdateSchema, signUpSchema } from "@/lib/validation";
+import { createContributionSchema, resourceSchema, resourceUpdateSchema, signUpSchema } from "@/lib/validation";
 
 describe("request validation", () => {
   it("normalizes account email and rejects short passwords", () => {
@@ -18,5 +18,12 @@ describe("request validation", () => {
   it("does not accept empty resource updates", () => {
     expect(resourceUpdateSchema.safeParse({}).success).toBe(false);
     expect(resourceUpdateSchema.safeParse({ isPublished: true }).success).toBe(true);
+  });
+
+  it("bounds INR contribution amounts to whole rupees", () => {
+    expect(createContributionSchema.safeParse({ amountRupees: 250, donorEmail: "" }).success).toBe(true);
+    expect(createContributionSchema.safeParse({ amountRupees: 0 }).success).toBe(false);
+    expect(createContributionSchema.safeParse({ amountRupees: 1.5 }).success).toBe(false);
+    expect(createContributionSchema.safeParse({ amountRupees: 100_001 }).success).toBe(false);
   });
 });

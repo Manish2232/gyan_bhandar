@@ -91,7 +91,7 @@ export default function Home() {
         </nav>
         <div className="header-actions">
           <Link className="text-link sign-in-link" href="/login">Sign in</Link>
-          <Link className="button button-dark button-small" href="/signup">Contribute <span aria-hidden="true">↗</span></Link>
+          <Link className="button button-dark button-small" href="/support">Support <span aria-hidden="true">↗</span></Link>
         </div>
       </header>
 
@@ -176,7 +176,7 @@ export default function Home() {
           <div className="contribute-mark" aria-hidden="true">g.</div>
           <div><p className="eyebrow">A library, not a leaderboard</p><h2>Keep the good things<br />in circulation.</h2></div>
           <p className="contribute-copy">No noise, no race to the top. Just generous people collecting what they learn and leaving the door open for the next curious person.</p>
-          <Link className="button button-light" href="/signup">Leave a note <span aria-hidden="true">↗</span></Link>
+          <Link className="button button-light" href="/support">Support the library <span aria-hidden="true">↗</span></Link>
         </section>
       </main>
 
